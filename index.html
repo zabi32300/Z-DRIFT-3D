@@ -5,135 +5,99 @@
 <title>Z DRIFT - Made by Zohaib</title>
 <style>
 *{margin:0;padding:0;box-sizing:border-box}
-body{background:#000;overflow:hidden;font-family:Arial}
+body{background:#000;overflow:hidden;font-family:Arial,tahoma;touch-action:none}
 canvas{display:block}
-#start{
-position:fixed;inset:0;
-background:radial-gradient(circle at center,#16224d,#000 80%);
-display:flex;flex-direction:column;align-items:center;justify-content:center;
-z-index:100;color:#fff;text-align:center
-}
-#start h1{font-size:80px;font-weight:900;letter-spacing:2px}
-#start h1 b{color:#ff3c00;text-shadow:0 0 20px #ff3c00}
-.made{color:#00e5ff;font-weight:900;margin-top:10px;letter-spacing:3px;font-size:18px}
-#startBtn{
-margin-top:35px;padding:18px 65px;background:#ff3c00;border:none;
-border-radius:40px;color:#fff;font-size:22px;font-weight:900;
-box-shadow:0 0 25px #ff3c00;
-}
-#ui{position:fixed;top:0;left:0;width:100%;padding:12px 15px;display:flex;justify-content:space-between;color:#00e5ff;font-weight:900;z-index:10;font-size:14px}
+#start{position:fixed;inset:0;background:radial-gradient(circle at center,#101a3d,#000 85%);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:100;color:#fff}
+#start h1{font-size:85px;font-weight:900} #start h1 b{color:#ff3c00;text-shadow:0 0 25px #ff3c00}
+#start .made{color:#00e5ff;font-weight:900;letter-spacing:4px;margin-top:10px;font-size:18px;animation:glow 1.5s infinite alternate}
+@keyframes glow{from{text-shadow:0 0 5px #00e5ff}to{text-shadow:0 0 20px #00e5ff}}
+#startBtn{margin-top:35px;padding:18px 70px;background:#ff3c00;border:none;border-radius:50px;color:#fff;font-size:22px;font-weight:900;box-shadow:0 0 30px #ff3c00}
+#ui{position:fixed;top:0;left:0;width:100%;padding:14px 18px;display:flex;justify-content:space-between;z-index:20;color:#fff;font-weight:900;font-size:13px;letter-spacing:1px}
+#ui span{background:rgba(0,0,0,0.5);padding:6px 12px;border-radius:20px;border:1px solid #00e5ff}
+#controls{position:fixed;bottom:18px;left:0;width:100%;display:flex;justify-content:space-between;align-items:end;padding:0 15px;z-index:20}
+.ctrl{width:88px;height:88px;background:rgba(255,255,255,0.12);border:2px solid #fff;border-radius:50%;display:flex;align-items:center;justify-content:center;color:#fff;font-size:32px;backdrop-filter:blur(5px)}
+#horn{background:#ff3c00;box-shadow:0 0 15px #ff3c00;width:75px;height:75px;font-size:28px}
+#nitro{background:#00e5ff;box-shadow:0 0 15px #00e5ff;width:75px;height:75px;font-size:14px;font-weight:900}
 </style>
 </head>
 <body>
-<div id="start">
-<h1><b>Z</b> DRIFT</h1>
-<div class="made">Made by Zohaib</div>
-<button id="startBtn">START ENGINE</button>
-</div>
-
-<div id="ui"><span>Made by Zohaib</span><span id="speed">0 KM/H</span></div>
+<div id="start"><h1><b>Z</b> DRIFT</h1><div class="made">Made by Zohaib</div><button id="startBtn">START ENGINE</button></div>
+<div id="ui"><span style="color:#00e5ff">Made by Zohaib</span><span id="speed">0 KM/H</span></div>
 <canvas id="c"></canvas>
+<div id="controls"><div class="ctrl" id="left">◀</div><div style="display:flex;gap:12px"><div class="ctrl" id="horn">📯</div><div class="ctrl" id="nitro">NITRO</div></div><div class="ctrl" id="right">▶</div></div>
 
 <script>
-const canvas = document.getElementById('c');
-const ctx = canvas.getContext('2d');
-const startScreen = document.getElementById('start');
-const startBtn = document.getElementById('startBtn');
+const canvas=document.getElementById('c'),ctx=canvas.getContext('2d');
+let W,H,run=false,speed=6,carX,road=0,keys={},traffic=[],ac,engOsc,engGain,smoke=[];
 
-let W,H, running=false, speed=6, carX, road=0, traffic=[];
-let left=false, right=false;
+function resize(){W=canvas.width=innerWidth;H=canvas.height=innerHeight;carX=W/2} resize(); addEventListener('resize',resize);
 
-function resize(){
- W = canvas.width = window.innerWidth;
- H = canvas.height = window.innerHeight;
- carX = W/2;
+function initAudio(){ac=new(window.AudioContext||window.webkitAudioContext)(); engOsc=ac.createOscillator(); engGain=ac.createGain(); engOsc.type='sawtooth'; engOsc.frequency.value=80; engOsc.connect(engGain); engGain.connect(ac.destination); engGain.gain.value=0.08; engOsc.start();}
+
+function playHorn(){if(!ac)return; let o=ac.createOscillator(),g=ac.createGain(); o.type='square'; o.frequency.value=420; o.connect(g); g.connect(ac.destination); g.gain.value=0.4; o.start(); o.stop(ac.currentTime+0.35); if(navigator.vibrate) navigator.vibrate(100);}
+
+function drawRealCar(x,y,color,isPlayer){
+ // Body
+ ctx.fillStyle=color; ctx.fillRect(x-28,y-50,56,100);
+ // Roof
+ ctx.fillStyle='#111'; ctx.fillRect(x-22,y-35,44,38);
+ // Windshield
+ ctx.fillStyle='#6ecbff'; ctx.fillRect(x-20,y-30,42,14); ctx.fillRect(x-20,y-5,42,10);
+ // Lights
+ ctx.fillStyle=isPlayer?'#fff':'#ff3c00'; ctx.fillRect(x-22,y+48,12,6); ctx.fillRect(x+10,y+48,12,6);
+ // Tyres
+ ctx.fillStyle='#000'; ctx.fillRect(x-34,y-20,8,22); ctx.fillRect(x+26,y-20,8,22); ctx.fillRect(x-34,y+20,8,22); ctx.fillRect(x+26,y+20,8,22);
 }
-resize();
-window.addEventListener('resize', resize);
 
-startBtn.onclick = function(){
- startScreen.style.display = 'none';
- running = true;
+document.getElementById('startBtn').onclick=()=>{
+ initAudio(); document.getElementById('start').style.display='none'; run=true;
+ setInterval(()=>{if(run){ let colors=['#fff','#ffeb3b','#00e5ff','#ff3c00']; let lane=Math.random()>0.5?W*0.28:W*0.72; traffic.push({x:lane,y:-150,c:colors[Math.floor(Math.random()*4)]}) }},900);
  loop();
- setInterval(()=>{
-  if(running){
-   let lane = Math.random() > 0.5 ? W*0.3 : W*0.7;
-   traffic.push({x:lane, y:-120});
-  }
- }, 900);
 };
 
-// Controls - PC + Mobile
-window.addEventListener('keydown', e=>{
- if(e.key=='ArrowLeft') left=true;
- if(e.key=='ArrowRight') right=true;
-});
-window.addEventListener('keyup', e=>{
- if(e.key=='ArrowLeft') left=false;
- if(e.key=='ArrowRight') right=false;
-});
-canvas.addEventListener('touchstart', e=>{
- let x = e.touches[0].clientX;
- if(x < W/2) left=true; else right=true;
-});
-canvas.addEventListener('touchend', ()=>{
- left=false; right=false;
-});
+let leftBtn=document.getElementById('left'),rightBtn=document.getElementById('right');
+leftBtn.ontouchstart=()=>keys.l=true; leftBtn.ontouchend=()=>keys.l=false; rightBtn.ontouchstart=()=>keys.r=true; rightBtn.ontouchend=()=>keys.r=false;
+leftBtn.onmousedown=()=>keys.l=true; leftBtn.onmouseup=()=>keys.l=false; rightBtn.onmousedown=()=>keys.r=true; rightBtn.onmouseup=()=>keys.r=false;
+document.getElementById('horn').ontouchstart=e=>{e.preventDefault(); playHorn()}; document.getElementById('horn').onmousedown=playHorn;
+let nitro=false; let nitroBtn=document.getElementById('nitro');
+nitroBtn.ontouchstart=()=>nitro=true; nitroBtn.ontouchend=()=>nitro=false; nitroBtn.onmousedown=()=>nitro=true; nitroBtn.onmouseup=()=>nitro=false;
+
+addEventListener('keydown',e=>{if(e.key=='ArrowLeft')keys.l=true; if(e.key=='ArrowRight')keys.r=true; if(e.key=='h')playHorn(); if(e.key=='n')nitro=true});
+addEventListener('keyup',e=>{if(e.key=='ArrowLeft')keys.l=false; if(e.key=='ArrowRight')keys.r=false; if(e.key=='n')nitro=false});
 
 function loop(){
- if(!running) return;
- 
- // Road
- ctx.fillStyle = '#222';
- ctx.fillRect(W*0.1, 0, W*0.8, H);
- ctx.fillStyle = '#333';
- ctx.fillRect(0,0,W*0.1,H);
- ctx.fillRect(W*0.9,0,W*0.1,H);
+ if(!run) return;
+ // Footpath + Grass + Road
+ ctx.fillStyle='#1a3a1a'; ctx.fillRect(0,0,W,H);
+ ctx.fillStyle='#444'; ctx.fillRect(W*0.08,0,W*0.84,H);
+ ctx.fillStyle='#222'; ctx.fillRect(W*0.12,0,W*0.76,H);
+ // Footpath lines
+ ctx.fillStyle='#aaa'; ctx.fillRect(W*0.11,0,4,H); ctx.fillRect(W*0.88,0,4,H);
+ // Center line
+ ctx.strokeStyle='#fff'; ctx.lineWidth=4; ctx.setLineDash([45,35]); ctx.lineDashOffset=-road; ctx.beginPath(); ctx.moveTo(W/2,0); ctx.lineTo(W/2,H); ctx.stroke(); ctx.setLineDash([]);
 
- // Lines
- ctx.strokeStyle = '#fff';
- ctx.lineWidth = 4;
- ctx.setLineDash([40,40]);
- ctx.lineDashOffset = -road;
- ctx.beginPath();
- ctx.moveTo(W/2, 0);
- ctx.lineTo(W/2, H);
- ctx.stroke();
- ctx.setLineDash([]);
- road += speed;
+ if(keys.l) carX-= nitro?12:8; if(keys.r) carX+= nitro?12:8;
+ carX=Math.max(W*0.14,Math.min(W*0.86,carX));
+ let currentSpeed = nitro ? speed+8 : speed;
+ road+=currentSpeed;
 
- // Car Move
- if(left) carX -= 8;
- if(right) carX += 8;
- carX = Math.max(W*0.15, Math.min(W*0.85, carX));
+ // Smoke for drift
+ if((keys.l||keys.r) && speed>5){ smoke.push({x:carX+(keys.l?-20:20), y:H-60, a:1}); }
+ smoke.forEach((s,i)=>{ s.y+=2; s.a-=0.04; ctx.fillStyle=`rgba(200,200,200,${s.a})`; ctx.beginPath(); ctx.arc(s.x,s.y,10,0,Math.PI*2); ctx.fill(); if(s.a<=0) smoke.splice(i,1); });
 
- // Traffic
  traffic.forEach((t,i)=>{
-  t.y += speed + 2;
-  ctx.fillStyle = '#ffeb3b';
-  ctx.fillRect(t.x-28, t.y-45, 56, 90);
-  ctx.fillStyle = '#000';
-  ctx.fillRect(t.x-28, t.y-20, 56, 10);
-  
-  if(Math.abs(t.x - carX) < 45 && Math.abs(t.y - (H-120)) < 65){
-   running=false;
-   alert('CRASHED! Score: ' + Math.floor(speed*10));
-   location.reload();
-  }
-  if(t.y > H+100) traffic.splice(i,1);
+  t.y+=currentSpeed+1;
+  drawRealCar(t.x,t.y,t.c,false);
+  if(Math.abs(t.x-carX)<48 && Math.abs(t.y-(H-110))<85){ run=false; alert('CRASHED! Made by Zohaib'); location.reload(); }
+  if(t.y>H+150) traffic.splice(i,1);
  });
 
- // Player Car
- ctx.fillStyle = '#ff3c00';
- ctx.fillRect(carX-32, H-130, 64, 100);
- ctx.fillStyle = '#00e5ff';
- ctx.fillRect(carX-24, H-110, 48, 25);
- ctx.fillStyle = '#111';
- ctx.fillRect(carX-36, H-60, 14, 25);
- ctx.fillRect(carX+22, H-60, 14, 25);
+ drawRealCar(carX,H-110,'#ff3c00',true);
+ if(nitro){ ctx.fillStyle='orange'; ctx.fillRect(carX-18,H-15,10,25); ctx.fillRect(carX+8,H-15,10,25); ctx.fillStyle='yellow'; ctx.fillRect(carX-15,H-10,4,20); ctx.fillRect(carX+11,H-10,4,20); }
 
- document.getElementById('speed').innerText = Math.floor(speed*22) + ' KM/H';
- speed += 0.01;
+ if(engOsc) engOsc.frequency.value = 60 + currentSpeed*25;
+ document.getElementById('speed').innerText = Math.floor(currentSpeed*23) + ' KM/H';
+ speed+=0.008;
  requestAnimationFrame(loop);
 }
 </script>
