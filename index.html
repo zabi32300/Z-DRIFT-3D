@@ -2,102 +2,126 @@
 <html>
 <head>
 <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
-<title>Z DRIFT - Made by Zohaib</title>
+<title>Z DRIFT PRO - Made by Zohaib</title>
 <style>
 *{margin:0;padding:0;box-sizing:border-box}
-body{background:#000;overflow:hidden;font-family:Arial,tahoma;touch-action:none}
+body{background:#000;overflow:hidden;font-family:Arial;touch-action:none}
 canvas{display:block}
-#start{position:fixed;inset:0;background:radial-gradient(circle at center,#101a3d,#000 85%);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:100;color:#fff}
-#start h1{font-size:85px;font-weight:900} #start h1 b{color:#ff3c00;text-shadow:0 0 25px #ff3c00}
-#start .made{color:#00e5ff;font-weight:900;letter-spacing:4px;margin-top:10px;font-size:18px;animation:glow 1.5s infinite alternate}
-@keyframes glow{from{text-shadow:0 0 5px #00e5ff}to{text-shadow:0 0 20px #00e5ff}}
-#startBtn{margin-top:35px;padding:18px 70px;background:#ff3c00;border:none;border-radius:50px;color:#fff;font-size:22px;font-weight:900;box-shadow:0 0 30px #ff3c00}
-#ui{position:fixed;top:0;left:0;width:100%;padding:14px 18px;display:flex;justify-content:space-between;z-index:20;color:#fff;font-weight:900;font-size:13px;letter-spacing:1px}
-#ui span{background:rgba(0,0,0,0.5);padding:6px 12px;border-radius:20px;border:1px solid #00e5ff}
-#controls{position:fixed;bottom:18px;left:0;width:100%;display:flex;justify-content:space-between;align-items:end;padding:0 15px;z-index:20}
-.ctrl{width:88px;height:88px;background:rgba(255,255,255,0.12);border:2px solid #fff;border-radius:50%;display:flex;align-items:center;justify-content:center;color:#fff;font-size:32px;backdrop-filter:blur(5px)}
-#horn{background:#ff3c00;box-shadow:0 0 15px #ff3c00;width:75px;height:75px;font-size:28px}
-#nitro{background:#00e5ff;box-shadow:0 0 15px #00e5ff;width:75px;height:75px;font-size:14px;font-weight:900}
+#garage{position:fixed;inset:0;background:radial-gradient(#111a3a,#000);z-index:200;display:flex;flex-direction:column;align-items:center;justify-content:center;color:#fff}
+#garage h1{font-size:60px;font-weight:900} #garage h1 b{color:#ff3c00}
+.car-option{margin-top:15px;display:flex;gap:12px}
+.car-card{width:95px;height:95px;background:rgba(255,255,255,0.1);border:2px solid #444;border-radius:15px;display:flex;flex-direction:column;align-items:center;justify-content:center;cursor:pointer}
+.car-card.active{border-color:#00e5ff;box-shadow:0 0 20px #00e5ff;background:rgba(0,229,255,0.15)}
+.car-card div{font-size:12px;margin-top:6px;font-weight:900}
+#startBtn{margin-top:25px;padding:16px 70px;background:#ff3c00;border:none;border-radius:40px;color:#fff;font-size:20px;font-weight:900;box-shadow:0 0 25px #ff3c00}
+#ui{position:fixed;top:0;left:0;width:100%;padding:10px 15px;display:flex;justify-content:space-between;z-index:20;color:#fff;font-size:12px}
+#controls{position:fixed;bottom:15px;left:0;width:100%;display:flex;justify-content:space-between;align-items:end;padding:0 15px;z-index:30}
+.btn{width:82px;height:82px;background:rgba(255,255,255,0.12);border:2px solid #fff;border-radius:50%;display:flex;align-items:center;justify-content:center;color:#fff;font-size:28px;backdrop-filter:blur(4px)}
+#steering{width:110px;height:110px;border-radius:50%;background:radial-gradient(#333,#111);border:4px solid #666;display:none;position:relative}
+#steering::after{content:'o';position:absolute;top:8px;left:50%;transform:translateX(-50%);font-size:20px}
+.small{width:70px;height:70px;font-size:14px;font-weight:900}
+#horn{background:#ff3c00} #nitro{background:#00e5ff;color:#000}
 </style>
 </head>
 <body>
-<div id="start"><h1><b>Z</b> DRIFT</h1><div class="made">Made by Zohaib</div><button id="startBtn">START ENGINE</button></div>
-<div id="ui"><span style="color:#00e5ff">Made by Zohaib</span><span id="speed">0 KM/H</span></div>
+<div id="garage">
+<h1><b>Z</b> DRIFT</h1>
+<p style="color:#00e5ff;margin-top:5px;font-weight:900;letter-spacing:2px">Made by Zohaib - PRO GARAGE</p>
+<div style="margin-top:20px;font-size:13px;color:#aaa">اپنی گاڑی منتخب کرو</div>
+<div class="car-option">
+<div class="car-card active" data-car="cultus" onclick="selectCar('cultus',this)"><span style="font-size:35px">🚗</span><div>CULTUS</div></div>
+<div class="car-card" data-car="audi" onclick="selectCar('audi',this)"><span style="font-size:35px">🚙</span><div>AUDI</div></div>
+<div class="car-card" data-car="lambo" onclick="selectCar('lambo',this)"><span style="font-size:35px">🏎️</span><div>LAMBO</div></div>
+</div>
+<div style="margin-top:18px;display:flex;gap:10px">
+<button onclick="setControl('arrow')" id="bArrow" style="padding:8px 18px;border-radius:20px;border:1px solid #00e5ff;background:#00e5ff;color:#000;font-weight:900">ARROW ◀▶</button>
+<button onclick="setControl('steering')" id="bSteer" style="padding:8px 18px;border-radius:20px;border:1px solid #666;background:transparent;color:#fff;font-weight:900">STEERING ○</button>
+</div>
+<button id="startBtn" onclick="startGame()">START ENGINE</button>
+</div>
+
+<div id="ui"><span id="carName">CULTUS</span><span id="speed">0 KM/H</span></div>
 <canvas id="c"></canvas>
-<div id="controls"><div class="ctrl" id="left">◀</div><div style="display:flex;gap:12px"><div class="ctrl" id="horn">📯</div><div class="ctrl" id="nitro">NITRO</div></div><div class="ctrl" id="right">▶</div></div>
+<div id="controls">
+<div id="arrowBox" style="display:flex;gap:10px"><div class="btn" id="left">◀</div><div class="btn" id="right">▶</div></div>
+<div id="steering"></div>
+<div style="display:flex;flex-direction:column;gap:10px;align-items:end">
+<div style="display:flex;gap:10px"><div class="btn small" id="horn">📯</div><div class="btn small" id="nitro">NITRO</div></div>
+<div style="display:flex;gap:10px"><div class="btn small" id="brake" style="background:#ff3c00">BRAKE</div><div class="btn small" id="race" style="background:#00ff88;color:#000">RACE</div></div>
+</div>
+</div>
 
 <script>
 const canvas=document.getElementById('c'),ctx=canvas.getContext('2d');
-let W,H,run=false,speed=6,carX,road=0,keys={},traffic=[],ac,engOsc,engGain,smoke=[];
+let W,H,run=false,speed=0,maxSpeed=14,carX,road=0,traffic=[],keys={},selectedCar='cultus',control='arrow';
+let ac,engOsc,engGain,steerAngle=0;
 
 function resize(){W=canvas.width=innerWidth;H=canvas.height=innerHeight;carX=W/2} resize(); addEventListener('resize',resize);
+function selectCar(name,el){selectedCar=name; document.querySelectorAll('.car-card').forEach(c=>c.classList.remove('active')); el.classList.add('active'); document.getElementById('carName').innerText=name.toUpperCase()}
+function setControl(type){control=type; document.getElementById('arrowBox').style.display=type=='arrow'?'flex':'none'; document.getElementById('steering').style.display=type=='steering'?'flex':'none'; document.getElementById('bArrow').style.background=type=='arrow'?'#00e5ff':'transparent'; document.getElementById('bArrow').style.color=type=='arrow'?'#000':'#fff'; document.getElementById('bSteer').style.background=type=='steering'?'#00e5ff':'transparent'; document.getElementById('bSteer').style.color=type=='steering'?'#000':'#fff';}
 
-function initAudio(){ac=new(window.AudioContext||window.webkitAudioContext)(); engOsc=ac.createOscillator(); engGain=ac.createGain(); engOsc.type='sawtooth'; engOsc.frequency.value=80; engOsc.connect(engGain); engGain.connect(ac.destination); engGain.gain.value=0.08; engOsc.start();}
+function initAudio(){ac=new(window.AudioContext||window.webkitAudioContext)(); engOsc=ac.createOscillator(); engGain=ac.createGain(); let filter=ac.createBiquadFilter(); filter.type='lowpass'; filter.frequency.value=1200; engOsc.type='sawtooth'; engOsc.connect(filter); filter.connect(engGain); engGain.connect(ac.destination); engGain.gain.value=0; engOsc.start();}
 
-function playHorn(){if(!ac)return; let o=ac.createOscillator(),g=ac.createGain(); o.type='square'; o.frequency.value=420; o.connect(g); g.connect(ac.destination); g.gain.value=0.4; o.start(); o.stop(ac.currentTime+0.35); if(navigator.vibrate) navigator.vibrate(100);}
+function playHorn(){if(!ac)return; let o=ac.createOscillator(),g=ac.createGain(); o.type='square'; o.frequency.value=420; o.connect(g); g.connect(ac.destination); g.gain.value=0.3; o.start(); o.stop(ac.currentTime+0.4);}
 
-function drawRealCar(x,y,color,isPlayer){
- // Body
- ctx.fillStyle=color; ctx.fillRect(x-28,y-50,56,100);
- // Roof
- ctx.fillStyle='#111'; ctx.fillRect(x-22,y-35,44,38);
- // Windshield
- ctx.fillStyle='#6ecbff'; ctx.fillRect(x-20,y-30,42,14); ctx.fillRect(x-20,y-5,42,10);
- // Lights
- ctx.fillStyle=isPlayer?'#fff':'#ff3c00'; ctx.fillRect(x-22,y+48,12,6); ctx.fillRect(x+10,y+48,12,6);
- // Tyres
- ctx.fillStyle='#000'; ctx.fillRect(x-34,y-20,8,22); ctx.fillRect(x+26,y-20,8,22); ctx.fillRect(x-34,y+20,8,22); ctx.fillRect(x+26,y+20,8,22);
+function drawCar(x,y,type,isPlayer){
+ let colors={cultus:'#fff',audi:'#222',lambo:'#ffcc00'};
+ ctx.fillStyle=isPlayer?colors[type]:'#ffeb3b';
+ if(type=='lambo'){ ctx.fillRect(x-30,y-55,60,110); ctx.fillStyle='#111'; ctx.fillRect(x-28,y-40,56,15); ctx.fillStyle='#00e5ff'; ctx.fillRect(x-26,y-20,52,10); }
+ else if(type=='audi'){ ctx.fillRect(x-28,y-55,56,110); ctx.fillRect(x-30,y-50,60,20); ctx.fillStyle='#ccc'; ctx.fillRect(x-24,y-10,48,12); }
+ else { ctx.fillRect(x-26,y-50,52,100); ctx.fillRect(x-20,y-60,40,25); }
+ ctx.fillStyle=isPlayer?'#fff':'#f00'; ctx.fillRect(x-20,y+50,10,5); ctx.fillRect(x+10,y+50,10,5);
 }
 
-document.getElementById('startBtn').onclick=()=>{
- initAudio(); document.getElementById('start').style.display='none'; run=true;
- setInterval(()=>{if(run){ let colors=['#fff','#ffeb3b','#00e5ff','#ff3c00']; let lane=Math.random()>0.5?W*0.28:W*0.72; traffic.push({x:lane,y:-150,c:colors[Math.floor(Math.random()*4)]}) }},900);
+function startGame(){
+ initAudio(); document.getElementById('garage').style.display='none'; run=true;
+ setInterval(()=>{if(run)traffic.push({x:Math.random()>0.5?W*0.28:W*0.72,y:-150,c:Math.random()})},900);
  loop();
+}
+
+let left=document.getElementById('left'),right=document.getElementById('right'),race=document.getElementById('race'),brake=document.getElementById('brake');
+left.ontouchstart=()=>keys.l=true; left.ontouchend=()=>keys.l=false; right.ontouchstart=()=>keys.r=true; right.ontouchend=()=>keys.r=false;
+race.ontouchstart=()=>keys.up=true; race.ontouchend=()=>keys.up=false; brake.ontouchstart=()=>keys.down=true; brake.ontouchend=()=>keys.down=false;
+left.onmousedown=()=>keys.l=true; left.onmouseup=()=>keys.l=false; right.onmousedown=()=>keys.r=true; right.onmouseup=()=>keys.r=false; race.onmousedown=()=>keys.up=true; race.onmouseup=()=>keys.up=false; brake.onmousedown=()=>keys.down=true; brake.onmouseup=()=>keys.down=false;
+document.getElementById('horn').onclick=playHorn;
+
+let steeringEl=document.getElementById('steering');
+let isSteering=false;
+steeringEl.ontouchstart=e=>{isSteering=true}; steeringEl.ontouchmove=e=>{
+ if(!isSteering)return; let rect=steeringEl.getBoundingClientRect(); let cx=rect.left+rect.width/2; let touchX=e.touches[0].clientX; let diff=(touchX-cx)/40; steerAngle=diff; if(diff<-1)keys.l=true,keys.r=false; else if(diff>1)keys.r=true,keys.l=false; else keys.l=false,keys.r=false;
+ steeringEl.style.transform=`rotate(${diff*30}deg)`;
 };
+steeringEl.ontouchend=()=>{isSteering=false; keys.l=false; keys.r=false; steerAngle=0; steeringEl.style.transform='rotate(0deg)'};
 
-let leftBtn=document.getElementById('left'),rightBtn=document.getElementById('right');
-leftBtn.ontouchstart=()=>keys.l=true; leftBtn.ontouchend=()=>keys.l=false; rightBtn.ontouchstart=()=>keys.r=true; rightBtn.ontouchend=()=>keys.r=false;
-leftBtn.onmousedown=()=>keys.l=true; leftBtn.onmouseup=()=>keys.l=false; rightBtn.onmousedown=()=>keys.r=true; rightBtn.onmouseup=()=>keys.r=false;
-document.getElementById('horn').ontouchstart=e=>{e.preventDefault(); playHorn()}; document.getElementById('horn').onmousedown=playHorn;
-let nitro=false; let nitroBtn=document.getElementById('nitro');
-nitroBtn.ontouchstart=()=>nitro=true; nitroBtn.ontouchend=()=>nitro=false; nitroBtn.onmousedown=()=>nitro=true; nitroBtn.onmouseup=()=>nitro=false;
+addEventListener('keydown',e=>{if(e.key=='ArrowLeft')keys.l=true; if(e.key=='ArrowRight')keys.r=true; if(e.key=='ArrowUp')keys.up=true; if(e.key=='ArrowDown')keys.down=true});
+addEventListener('keyup',e=>{if(e.key=='ArrowLeft')keys.l=false; if(e.key=='ArrowRight')keys.r=false; if(e.key=='ArrowUp')keys.up=false; if(e.key=='ArrowDown')keys.down=false});
 
-addEventListener('keydown',e=>{if(e.key=='ArrowLeft')keys.l=true; if(e.key=='ArrowRight')keys.r=true; if(e.key=='h')playHorn(); if(e.key=='n')nitro=true});
-addEventListener('keyup',e=>{if(e.key=='ArrowLeft')keys.l=false; if(e.key=='ArrowRight')keys.r=false; if(e.key=='n')nitro=false});
+let nitro=false; document.getElementById('nitro').ontouchstart=()=>nitro=true; document.getElementById('nitro').ontouchend=()=>nitro=false; document.getElementById('nitro').onmousedown=()=>nitro=true; document.getElementById('nitro').onmouseup=()=>nitro=false;
 
 function loop(){
- if(!run) return;
- // Footpath + Grass + Road
+ if(!run)return;
  ctx.fillStyle='#1a3a1a'; ctx.fillRect(0,0,W,H);
- ctx.fillStyle='#444'; ctx.fillRect(W*0.08,0,W*0.84,H);
  ctx.fillStyle='#222'; ctx.fillRect(W*0.12,0,W*0.76,H);
- // Footpath lines
- ctx.fillStyle='#aaa'; ctx.fillRect(W*0.11,0,4,H); ctx.fillRect(W*0.88,0,4,H);
- // Center line
- ctx.strokeStyle='#fff'; ctx.lineWidth=4; ctx.setLineDash([45,35]); ctx.lineDashOffset=-road; ctx.beginPath(); ctx.moveTo(W/2,0); ctx.lineTo(W/2,H); ctx.stroke(); ctx.setLineDash([]);
+ ctx.strokeStyle='#fff'; ctx.setLineDash([45,35]); ctx.lineDashOffset=-road; ctx.beginPath(); ctx.moveTo(W/2,0); ctx.lineTo(W/2,H); ctx.stroke(); ctx.setLineDash([]);
 
- if(keys.l) carX-= nitro?12:8; if(keys.r) carX+= nitro?12:8;
+ if(keys.up) speed+=0.12; else if(keys.down) speed-=0.15; else speed-=0.04;
+ if(nitro) speed+=0.18;
+ speed=Math.max(0,Math.min(maxSpeed+(nitro?6:0),speed));
+
+ if(keys.l) carX-=6+speed*0.3; if(keys.r) carX+=6+speed*0.3;
  carX=Math.max(W*0.14,Math.min(W*0.86,carX));
- let currentSpeed = nitro ? speed+8 : speed;
- road+=currentSpeed;
+ road+=speed;
 
- // Smoke for drift
- if((keys.l||keys.r) && speed>5){ smoke.push({x:carX+(keys.l?-20:20), y:H-60, a:1}); }
- smoke.forEach((s,i)=>{ s.y+=2; s.a-=0.04; ctx.fillStyle=`rgba(200,200,200,${s.a})`; ctx.beginPath(); ctx.arc(s.x,s.y,10,0,Math.PI*2); ctx.fill(); if(s.a<=0) smoke.splice(i,1); });
+ traffic.forEach((t,i)=>{ t.y+=speed; drawCar(t.x,t.y,'cultus',false); if(Math.abs(t.x-carX)<50 && Math.abs(t.y-(H-120))<80){ run=false; alert('CRASHED!'); location.reload(); } if(t.y>H+150) traffic.splice(i,1); });
 
- traffic.forEach((t,i)=>{
-  t.y+=currentSpeed+1;
-  drawRealCar(t.x,t.y,t.c,false);
-  if(Math.abs(t.x-carX)<48 && Math.abs(t.y-(H-110))<85){ run=false; alert('CRASHED! Made by Zohaib'); location.reload(); }
-  if(t.y>H+150) traffic.splice(i,1);
- });
+ drawCar(carX,H-120,selectedCar,true);
 
- drawRealCar(carX,H-110,'#ff3c00',true);
- if(nitro){ ctx.fillStyle='orange'; ctx.fillRect(carX-18,H-15,10,25); ctx.fillRect(carX+8,H-15,10,25); ctx.fillStyle='yellow'; ctx.fillRect(carX-15,H-10,4,20); ctx.fillRect(carX+11,H-10,4,20); }
+ if(ac){
+  engGain.gain.value = speed>0.5?0.12+speed*0.02:0;
+  engOsc.frequency.value = 60 + speed*35 + (nitro?100:0);
+ }
 
- if(engOsc) engOsc.frequency.value = 60 + currentSpeed*25;
- document.getElementById('speed').innerText = Math.floor(currentSpeed*23) + ' KM/H';
- speed+=0.008;
+ document.getElementById('speed').innerText=Math.floor(speed*18)+' KM/H';
  requestAnimationFrame(loop);
 }
 </script>
