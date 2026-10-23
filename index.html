@@ -1,47 +1,140 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, user-scalable=no">
+<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
 <title>Z DRIFT - Made by Zohaib</title>
 <style>
-*{margin:0;padding:0;box-sizing:border-box}body{background:#000;overflow:hidden;font-family:sans-serif;touch-action:none}canvas{display:block}
-#ui{position:fixed;top:0;left:0;width:100%;padding:14px;display:flex;justify-content:space-between;color:#fff;font-weight:900;z-index:5}
-#start{position:fixed;inset:0;background:radial-gradient(#1e2a5a,#000);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:20;color:#fff;text-align:center}
-#start h1{font-size:70px;animation:pop 1s infinite alternate}#start h1 b{color:#ff3c00}
-.made{color:#00e5ff;margin-top:10px;font-weight:900;letter-spacing:2px;animation:slide 1s 0.5s both}
-@keyframes pop{from{transform:scale(1)}to{transform:scale(1.07)}}@keyframes slide{from{opacity:0;transform:translateY(30px)}to{opacity:1;transform:translateY(0)}}
-#start button{margin-top:30px;padding:15px 50px;background:#ff3c00;border:none;border-radius:30px;color:#fff;font-size:20px;font-weight:900}
-#controls{position:fixed;bottom:20px;width:100%;display:flex;justify-content:space-between;padding:0 20px;z-index:6}
-.btn{width:85px;height:85px;background:rgba(255,255,255,0.15);border:2px solid #fff;border-radius:50%;color:#fff;font-size:30px;display:flex;align-items:center;justify-content:center}
-#horn{width:75px;background:#ff3c00}
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:#000;overflow:hidden;font-family:Arial}
+canvas{display:block}
+#start{
+position:fixed;inset:0;
+background:radial-gradient(circle at center,#16224d,#000 80%);
+display:flex;flex-direction:column;align-items:center;justify-content:center;
+z-index:100;color:#fff;text-align:center
+}
+#start h1{font-size:80px;font-weight:900;letter-spacing:2px}
+#start h1 b{color:#ff3c00;text-shadow:0 0 20px #ff3c00}
+.made{color:#00e5ff;font-weight:900;margin-top:10px;letter-spacing:3px;font-size:18px}
+#startBtn{
+margin-top:35px;padding:18px 65px;background:#ff3c00;border:none;
+border-radius:40px;color:#fff;font-size:22px;font-weight:900;
+box-shadow:0 0 25px #ff3c00;
+}
+#ui{position:fixed;top:0;left:0;width:100%;padding:12px 15px;display:flex;justify-content:space-between;color:#00e5ff;font-weight:900;z-index:10;font-size:14px}
 </style>
 </head>
 <body>
-<div id="start"><h1><b>Z</b> DRIFT</h1><div class="made">Made by Zohaib</div><button onclick="startGame()">START ENGINE</button></div>
-<div id="ui"><span style="color:#00e5ff">Made by Zohaib</span><span id="sp">0 KM/H</span></div>
+<div id="start">
+<h1><b>Z</b> DRIFT</h1>
+<div class="made">Made by Zohaib</div>
+<button id="startBtn">START ENGINE</button>
+</div>
+
+<div id="ui"><span>Made by Zohaib</span><span id="speed">0 KM/H</span></div>
 <canvas id="c"></canvas>
-<div id="controls"><div class="btn" id="l">◀</div><div class="btn" id="horn">📯</div><div class="btn" id="r">▶</div></div>
+
 <script>
-const canvas=document.getElementById('c'),ctx=canvas.getContext('2d');
-let W,H;function resize(){W=canvas.width=innerWidth;H=canvas.height=innerHeight}resize();addEventListener('resize',resize);
-let run=false,speed=7,carX,ro=0,keys={},traffic=[],ac,engineOsc,engineGain;
-function initAudio(){ac=new(window.AudioContext||window.webkitAudioContext)();engineOsc=ac.createOscillator();engineGain=ac.createGain();let filter=ac.createBiquadFilter();filter.type='lowpass';filter.frequency.value=800;engineOsc.type='sawtooth';engineOsc.connect(filter);filter.connect(engineGain);engineGain.connect(ac.destination);engineGain.gain.value=0.12;engineOsc.start()}
-function updateEngineSound(){if(!engineOsc)return;engineOsc.frequency.value=70+speed*18+Math.abs(carX-W/2)*0.1}
-function playHorn(){if(!ac)return;let o=ac.createOscillator(),g=ac.createGain();o.connect(g);g.connect(ac.destination);o.frequency.value=450;o.type='square';g.gain.value=0.4;o.start();o.stop(ac.currentTime+0.4);if(navigator.vibrate)navigator.vibrate(120)}
-function startGame(){initAudio();run=true;carX=W/2;document.getElementById('start').style.display='none';setInterval(()=>{if(run)traffic.push({x:Math.random()>0.5?W*0.3:W*0.65,y:-150})},900);loop()}
-function loop(){
-if(!run)return;
-ctx.fillStyle='#111';ctx.fillRect(W*0.12,0,W*0.76,H);ctx.fillStyle='#2a2a2a';ctx.fillRect(0,0,W*0.12,H);ctx.fillRect(W*0.88,0,W,H);
-ctx.strokeStyle='#fff';ctx.setLineDash([50,40]);ctx.lineDashOffset=-ro;ctx.beginPath();ctx.moveTo(W/2,0);ctx.lineTo(W/2,H);ctx.stroke();ctx.setLineDash([]);ro+=speed;
-if(keys.l)carX-=speed*1.3;if(keys.r)carX+=speed*1.3;carX=Math.max(W*0.16,Math.min(W*0.84,carX));
-traffic.forEach((t,i)=>{t.y+=speed+2;ctx.fillStyle='#ffeb3b';ctx.fillRect(t.x-24,t.y-45,48,90);if(Math.abs(t.x-carX)<42 && Math.abs(t.y-(H-120))<75){run=false;if(engineOsc)engineOsc.stop();alert('CRASHED!');location.reload()}if(t.y>H+150)traffic.splice(i,1)});
-ctx.fillStyle='#ff3c00';ctx.fillRect(carX-30,H-170,60,110);ctx.fillStyle='#00e5ff';ctx.fillRect(carX-22,H-150,44,30);
-updateEngineSound();document.getElementById('sp').innerText=Math.floor(speed*22)+' KM/H';speed+=0.003;requestAnimationFrame(loop);
+const canvas = document.getElementById('c');
+const ctx = canvas.getContext('2d');
+const startScreen = document.getElementById('start');
+const startBtn = document.getElementById('startBtn');
+
+let W,H, running=false, speed=6, carX, road=0, traffic=[];
+let left=false, right=false;
+
+function resize(){
+ W = canvas.width = window.innerWidth;
+ H = canvas.height = window.innerHeight;
+ carX = W/2;
 }
-let l=document.getElementById('l'),r=document.getElementById('r'),h=document.getElementById('horn');
-l.ontouchstart=e=>{e.preventDefault();keys.l=true};l.ontouchend=()=>keys.l=false;r.ontouchstart=e=>{e.preventDefault();keys.r=true};r.ontouchend=()=>keys.r=false;h.ontouchstart=e=>{e.preventDefault();playHorn()};
-l.onmousedown=()=>keys.l=true;l.onmouseup=()=>keys.l=false;r.onmousedown=()=>keys.r=true;r.onmouseup=()=>keys.r=false;h.onmousedown=playHorn;
+resize();
+window.addEventListener('resize', resize);
+
+startBtn.onclick = function(){
+ startScreen.style.display = 'none';
+ running = true;
+ loop();
+ setInterval(()=>{
+  if(running){
+   let lane = Math.random() > 0.5 ? W*0.3 : W*0.7;
+   traffic.push({x:lane, y:-120});
+  }
+ }, 900);
+};
+
+// Controls - PC + Mobile
+window.addEventListener('keydown', e=>{
+ if(e.key=='ArrowLeft') left=true;
+ if(e.key=='ArrowRight') right=true;
+});
+window.addEventListener('keyup', e=>{
+ if(e.key=='ArrowLeft') left=false;
+ if(e.key=='ArrowRight') right=false;
+});
+canvas.addEventListener('touchstart', e=>{
+ let x = e.touches[0].clientX;
+ if(x < W/2) left=true; else right=true;
+});
+canvas.addEventListener('touchend', ()=>{
+ left=false; right=false;
+});
+
+function loop(){
+ if(!running) return;
+ 
+ // Road
+ ctx.fillStyle = '#222';
+ ctx.fillRect(W*0.1, 0, W*0.8, H);
+ ctx.fillStyle = '#333';
+ ctx.fillRect(0,0,W*0.1,H);
+ ctx.fillRect(W*0.9,0,W*0.1,H);
+
+ // Lines
+ ctx.strokeStyle = '#fff';
+ ctx.lineWidth = 4;
+ ctx.setLineDash([40,40]);
+ ctx.lineDashOffset = -road;
+ ctx.beginPath();
+ ctx.moveTo(W/2, 0);
+ ctx.lineTo(W/2, H);
+ ctx.stroke();
+ ctx.setLineDash([]);
+ road += speed;
+
+ // Car Move
+ if(left) carX -= 8;
+ if(right) carX += 8;
+ carX = Math.max(W*0.15, Math.min(W*0.85, carX));
+
+ // Traffic
+ traffic.forEach((t,i)=>{
+  t.y += speed + 2;
+  ctx.fillStyle = '#ffeb3b';
+  ctx.fillRect(t.x-28, t.y-45, 56, 90);
+  ctx.fillStyle = '#000';
+  ctx.fillRect(t.x-28, t.y-20, 56, 10);
+  
+  if(Math.abs(t.x - carX) < 45 && Math.abs(t.y - (H-120)) < 65){
+   running=false;
+   alert('CRASHED! Score: ' + Math.floor(speed*10));
+   location.reload();
+  }
+  if(t.y > H+100) traffic.splice(i,1);
+ });
+
+ // Player Car
+ ctx.fillStyle = '#ff3c00';
+ ctx.fillRect(carX-32, H-130, 64, 100);
+ ctx.fillStyle = '#00e5ff';
+ ctx.fillRect(carX-24, H-110, 48, 25);
+ ctx.fillStyle = '#111';
+ ctx.fillRect(carX-36, H-60, 14, 25);
+ ctx.fillRect(carX+22, H-60, 14, 25);
+
+ document.getElementById('speed').innerText = Math.floor(speed*22) + ' KM/H';
+ speed += 0.01;
+ requestAnimationFrame(loop);
 }
 </script>
 </body>
