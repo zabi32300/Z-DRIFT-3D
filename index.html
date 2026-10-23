@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html lang="ur">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Z DRIFT 3D</title>
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#000000">
+<style>
+*{margin:0;padding:0;box-sizing:border-box;user-select:none;-webkit-user-select:none}
+body{background:#000;overflow:hidden;font-family:Arial,sans-serif;touch-action:none}
+canvas{display:block;width:100vw;height:100vh}
+#ui{position:fixed;top:0;left:0;width:100%;padding:15px 20px;display:flex;justify-content:space-between;color:white;font-weight:bold;font-size:18px;z-index:5;background:linear-gradient(to bottom, rgba(0,0,0,0.8), transparent);pointer-events:none}
+#controls{position:fixed;bottom:30px;width:100%;display:flex;justify-content:space-between;padding:0 30px;z-index:5}
+.btn{width:85px;height:85px;background:rgba(255,255,255,0.15);border:2px solid rgba(255,255,255,0.8);border-radius:50%;font-size:28px;color:white;backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);display:flex;align-items:center;justify-content:center}
+.btn:active{background:rgba(255,60,0,0.5);transform:scale(0.95)}
+#startScreen{position:fixed;inset:0;background:radial-gradient(circle at center, #1a1f4b 0%, #000000 100%);display:flex;flex-direction:column;align-items:center;justify-content:center;color:white;z-index:100;text-align:center}
+#startScreen h1{font-size:55px;letter-spacing:5px;color:white;margin:0;text-shadow:0 0 20px #00d4ff, 0 0 40px #00d4ff}
+#startScreen h1 span{color:#ff3c00;text-shadow:0 0 20px #ff3c00}
+#startScreen p{margin:15px 0 30px 0;opacity:0.7;letter-spacing:2px}
+#startBtn{padding:16px 50px;font-size:22px;background:linear-gradient(90deg, #ff3c00, #ff6a00);border:none;border-radius:40px;color:white;font-weight:bold;box-shadow:0 10px 30px rgba(255,60,0,0.4)}
+#startBtn:active{transform:scale(0.95)}
+#gameOver{position:fixed;inset:0;background:rgba(0,0,0,0.85);display:none;flex-direction:column;align-items:center;justify-content:center;color:white;z-index:101}
+#gameOver h2{font-size:40px;color:#ff3c00}
+#gameOver button{margin-top:20px;padding:12px 40px;font-size:18px;background:white;color:black;border:none;border-radius:30px;font-weight:bold}
+</style>
+</head>
+<body>
+
+<div id="startScreen">
+  <h1><span>Z</span> DRIFT</h1>
+  <p>PROFESSIONAL RACING</p>
+  <button id="startBtn">🏁 START ENGINE</button>
+  <p style="font-size:12px;margin-top:40px;opacity:0.4">Use ◀️ ▶️ to Drift</p>
+</div>
+
+<div id="gameOver">
+  <h2>CRASHED!</h2>
+  <p id="finalScore" style="font-size:22px;margin-top:10px">Score: 0</p>
+  <button onclick="location.reload()">RETRY</button>
+</div>
+
+<div id="ui">
+  <span id="score">SCORE: 0</span>
+  <span id="speed">0 KM/H</span>
+</div>
+
+<canvas id="game"></canvas>
+
+<div id="controls">
+  <button class="btn" id="leftBtn">◀️</button>
+  <button class="btn" id="rightBtn">▶️</button>
+</div>
+
+<script>
+const canvas = document.getElementById('game');
+const ctx = canvas.getContext('2d');
+function resize(){ canvas.width = innerWidth; canvas.height = innerHeight; }
+resize(); window.addEventListener('resize', resize);
+
+let running = false, score = 0, speed = 5, carX = 0, roadOffset = 0, keys = {};
+let obstacles = [], particles = [];
+let audioCtx;
+
+carX = canvas.width/2;
+
+// --- SOUND SYSTEM ---
+function initAudio(){
+  audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+}
+function playSound(type){
+  if(!audioCtx) return;
+  const osc = audioCtx.createOscillator();
+  const gain = audioCtx.createGain();
+  osc.connect(gain); gain.connect(audioCtx.destination);
+  
+  if(type === 'drift'){
+    osc.frequency.setValueAtTime(200, audioCtx.currentTime);
+    osc.frequency.exponentialRampToValueAtTime(600, audioCtx.currentTime+0.2);
+    gain.gain.setValueAtTime(0.15, audioCtx.currentTime);
+    gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime+0.2);
+    osc.start(); osc.stop(audioCtx.currentTime+0.2);
+  }
+  if(type === 'crash'){
+    osc.frequency.setValueAtTime(400, audioCtx.currentTime);
+    osc.frequency.linearRampToValueAtTime(50, audioCtx.currentTime+0.5);
+    gain.gain.setValueAtTime(0.4, audioCtx.currentTime);
+    gain.gain.linearRampToValueAtTime(0.01, audioCtx.currentTime+0.5);
+    osc.start(); osc.stop(audioCtx.currentTime+0.5);
+  }
+  if(type === 'engine'){
+    osc.frequency.setValueAtTime(80 + speed*2, audioCtx.currentTime);
+    gain.gain.setValueAtTime(0.04, audioCtx.currentTime);
+    osc.start(); osc.stop(audioCtx.currentTime+0.1);
+  }
+}
+
+function spawnObstacle(){
+  const w = 40 + Math.random()*20;
+  obstacles.push({
+    x: Math.random()*(canvas.width*0.7) + canvas.width*0.15,
+    y: -100,
+    w: w, h: 75,
+    color: Math.random()>0.5?'#ffeb3b':'#ffffff'
+  });
+}
+
+function gameLoop(){
+  if(!running) return;
+
+  // Background
+  ctx.fillStyle = '#1e1e1e';
+  ctx.fillRect(0,0,canvas.width,canvas.height);
+
+  // Road
+  ctx.fillStyle = '#0f0f0f';
+  ctx.fillRect(canvas.width*0.12,0,canvas.width*0.76,canvas.height);
+  
+  // Road lines
+  ctx.strokeStyle = 'rgba(255,255,255,0.8)';
+  ctx.lineWidth = 4;
+  ctx.setLineDash([40,40]);
+  ctx.lineDashOffset = -roadOffset;
+  ctx.beginPath();
+  ctx.moveTo(canvas.width/2,0);
+  ctx.lineTo(canvas.width/2,canvas.height);
+  ctx.stroke();
+  ctx.setLineDash([]);
+  
+  // Side borders
+  ctx.fillStyle = '#ff3c00';
+  ctx.fillRect(canvas.width*0.12,0,8,canvas.height);
+  ctx.fillRect(canvas.width*0.88-8,0,8,canvas.height);
+
+  roadOffset += speed;
+  
+  // Controls
+  if(keys.left){ carX -= 8; if(Math.random()>0.7) playSound('drift'); }
+  if(keys.right){ carX += 8; if(Math.random()>0.7) playSound('drift'); }
+  carX = Math.max(canvas.width*0.15, Math.min(canvas.width*0.85, carX));
+  
+  // Engine sound
+  if(Math.random()>0.8) playSound('engine');
+
+  // Obstacles update
+  obstacles.forEach((o, i)=>{
+    o.y += speed;
+    ctx.fillStyle = o.color;
+    ctx.fillRect(o.x, o.y, o.w, o.h);
+    // light
+    ctx.fillStyle = 'rgba(255,0,0,0.8)';
+    ctx.fillRect(o.x+5, o.y+o.h-8, 8, 5);
+    ctx.fillRect(o.x+o.w-13, o.y+o.h-8, 8, 5);
+
+    // Collision
+    if(o.x < carX+25 && o.x+o.w > carX-25 && o.y < canvas.height-100+45 && o.y+o.h > canvas.height-100-45){
+      running = false;
+      playSound('crash');
+      document.getElementById('finalScore').innerText = 'Score: ' + Math.floor(score);
+      document.getElementById('gameOver').style.display = 'flex';
+      if(navigator.vibrate) navigator.vibrate(300);
+    }
+    if(o.y > canvas.height){
+      obstacles.splice(i,1);
+      score += 25;
+    }
+  });
+
+  // Car Draw
+  ctx.save();
+  ctx.translate(carX, canvas.height-110);
+  let tilt = 0;
+  if(keys.left) tilt = -0.15;
+  if(keys.right) tilt = 0.15;
+  ctx.rotate(tilt);
+
+  ctx.fillStyle = '#111';
+  ctx.fillRect(-32,-52,12,22); ctx.fillRect(20,-52,12,22);
+  ctx.fillRect(-32,35,12,22); ctx.fillRect(20,35,12,22);
+
+  ctx.fillStyle = '#ff3c00';
+  ctx.beginPath(); ctx.roundRect(-28,-50,56,95,12); ctx.fill();
+
+  ctx.fillStyle = '#00e5ff';
+  ctx.beginPath(); ctx.roundRect(-22,-35,44,30,6); ctx.fill();
+  
+  ctx.fillStyle = 'rgba(255,255,255,0.9)';
+  ctx.fillRect(-26,-15,52,6);
+
+  ctx.restore();
+
+  score += speed/10;
+  document.getElementById('score').innerText = 'SCORE: ' + Math.floor(score);
+  document.getElementById('speed').innerText = Math.floor(speed*18) + ' KM/H';
+  speed += 0.008;
+
+  requestAnimationFrame(gameLoop);
+}
+
+// Events
+document.getElementById('startBtn').addEventListener('click', ()=>{
+  initAudio();
+  running = true;
+  document.getElementById('startScreen').style.display='none';
+  carX = canvas.width/2;
+  setInterval(()=>{ if(running) spawnObstacle(); }, 1100);
+  gameLoop();
+});
+
+const setKey = (k, v) => keys[k]=v;
+document.getElementById('leftBtn').addEventListener('touchstart', e=>{e.preventDefault(); setKey('left',true)});
+document.getElementById('leftBtn').addEventListener('touchend', e=>{e.preventDefault(); setKey('left',false)});
+document.getElementById('rightBtn').addEventListener('touchstart', e=>{e.preventDefault(); setKey('right',true)});
+document.getElementById('rightBtn').addEventListener('touchend', e=>{e.preventDefault(); setKey('right',false)});
+document.getElementById('leftBtn').addEventListener('mousedown', ()=>setKey('left',true));
+document.getElementById('leftBtn').addEventListener('mouseup', ()=>setKey('left',false));
+document.getElementById('rightBtn').addEventListener('mousedown', ()=>setKey('right',true));
+document.getElementById('rightBtn').addEventListener('mouseup', ()=>setKey('right',false));
+
+window.addEventListener('keydown', e=>{
+  if(e.key==='ArrowLeft') setKey('left',true);
+  if(e.key==='ArrowRight') setKey('right',true);
+});
+window.addEventListener('keyup', e=>{
+  if(e.key==='ArrowLeft') setKey('left',false);
+  if(e.key==='ArrowRight') setKey('right',false);
+});
+</script>
+</body>
+</html>
