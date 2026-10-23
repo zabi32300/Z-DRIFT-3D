@@ -1,128 +1,81 @@
 <!DOCTYPE html>
 <html>
 <head>
-<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
-<title>Z DRIFT PRO - Made by Zohaib</title>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,user-scalable=no">
+<title>Z DRIFT PRO MAX</title>
 <style>
-*{margin:0;padding:0;box-sizing:border-box}
-body{background:#000;overflow:hidden;font-family:Arial;touch-action:none}
+*{margin:0;padding:0;box-sizing:border-box;touch-action:none}
+body{background:#000;overflow:hidden;font-family:Arial}
 canvas{display:block}
-#garage{position:fixed;inset:0;background:radial-gradient(#111a3a,#000);z-index:200;display:flex;flex-direction:column;align-items:center;justify-content:center;color:#fff}
-#garage h1{font-size:60px;font-weight:900} #garage h1 b{color:#ff3c00}
-.car-option{margin-top:15px;display:flex;gap:12px}
-.car-card{width:95px;height:95px;background:rgba(255,255,255,0.1);border:2px solid #444;border-radius:15px;display:flex;flex-direction:column;align-items:center;justify-content:center;cursor:pointer}
-.car-card.active{border-color:#00e5ff;box-shadow:0 0 20px #00e5ff;background:rgba(0,229,255,0.15)}
-.car-card div{font-size:12px;margin-top:6px;font-weight:900}
-#startBtn{margin-top:25px;padding:16px 70px;background:#ff3c00;border:none;border-radius:40px;color:#fff;font-size:20px;font-weight:900;box-shadow:0 0 25px #ff3c00}
-#ui{position:fixed;top:0;left:0;width:100%;padding:10px 15px;display:flex;justify-content:space-between;z-index:20;color:#fff;font-size:12px}
-#controls{position:fixed;bottom:15px;left:0;width:100%;display:flex;justify-content:space-between;align-items:end;padding:0 15px;z-index:30}
-.btn{width:82px;height:82px;background:rgba(255,255,255,0.12);border:2px solid #fff;border-radius:50%;display:flex;align-items:center;justify-content:center;color:#fff;font-size:28px;backdrop-filter:blur(4px)}
-#steering{width:110px;height:110px;border-radius:50%;background:radial-gradient(#333,#111);border:4px solid #666;display:none;position:relative}
-#steering::after{content:'o';position:absolute;top:8px;left:50%;transform:translateX(-50%);font-size:20px}
-.small{width:70px;height:70px;font-size:14px;font-weight:900}
-#horn{background:#ff3c00} #nitro{background:#00e5ff;color:#000}
+#garage{position:fixed;inset:0;background:radial-gradient(#16224d,#000);z-index:99;display:flex;flex-direction:column;align-items:center;justify-content:center;color:#fff}
+#garage h1{font-size:65px;font-weight:900} #garage h1 b{color:#ff3c00}
+.made{color:#00e5ff;letter-spacing:3px;font-weight:900;margin-top:5px}
+.cars{display:flex;gap:12px;margin-top:20px}
+.card{width:95px;height:95px;background:#111;border:2px solid #444;border-radius:15px;display:flex;flex-direction:column;align-items:center;justify-content:center}
+.card.active{border-color:#00e5ff;box-shadow:0 0 20px #00e5ff}
+#startBtn{margin-top:25px;padding:15px 70px;background:#ff3c00;border:none;border-radius:40px;color:#fff;font-weight:900;font-size:18px}
+#ui{position:fixed;top:0;left:0;width:100%;display:flex;justify-content:space-between;padding:10px 15px;color:#fff;z-index:10;font-size:12px;font-weight:900}
+#controls{position:fixed;bottom:15px;left:0;width:100%;display:flex;justify-content:space-between;padding:0 15px;z-index:10;align-items:end}
+.btn{width:75px;height:75px;border-radius:50%;display:flex;align-items:center;justify-content:center;color:#fff;border:2px solid #fff;background:rgba(255,255,255,0.1)}
+#race{background:#00ff88;color:#000;font-weight:900;font-size:11px}
+#brake{background:#ff3c00;font-weight:900;font-size:11px}
+#steer{width:110px;height:110px;background:radial-gradient(#555,#111);border:4px solid #333;display:none}
 </style>
 </head>
 <body>
 <div id="garage">
 <h1><b>Z</b> DRIFT</h1>
-<p style="color:#00e5ff;margin-top:5px;font-weight:900;letter-spacing:2px">Made by Zohaib - PRO GARAGE</p>
-<div style="margin-top:20px;font-size:13px;color:#aaa">اپنی گاڑی منتخب کرو</div>
-<div class="car-option">
-<div class="car-card active" data-car="cultus" onclick="selectCar('cultus',this)"><span style="font-size:35px">🚗</span><div>CULTUS</div></div>
-<div class="car-card" data-car="audi" onclick="selectCar('audi',this)"><span style="font-size:35px">🚙</span><div>AUDI</div></div>
-<div class="car-card" data-car="lambo" onclick="selectCar('lambo',this)"><span style="font-size:35px">🏎️</span><div>LAMBO</div></div>
+<div class="made">Made by Zohaib</div>
+<div class="cars">
+<div class="card active" id="c1" onclick="car='cultus';sel(this)"><span style="font-size:35px">🚗</span><small>CULTUS</small></div>
+<div class="card" id="c2" onclick="car='audi';sel(this)"><span style="font-size:35px">🚙</span><small>AUDI</small></div>
+<div class="card" id="c3" onclick="car='lambo';sel(this)"><span style="font-size:35px">🏎️</span><small>LAMBO</small></div>
 </div>
-<div style="margin-top:18px;display:flex;gap:10px">
-<button onclick="setControl('arrow')" id="bArrow" style="padding:8px 18px;border-radius:20px;border:1px solid #00e5ff;background:#00e5ff;color:#000;font-weight:900">ARROW ◀▶</button>
-<button onclick="setControl('steering')" id="bSteer" style="padding:8px 18px;border-radius:20px;border:1px solid #666;background:transparent;color:#fff;font-weight:900">STEERING ○</button>
+<div style="margin-top:15px;display:flex;gap:10px">
+<button onclick="mode='arrow';show()" style="padding:8px 15px;border-radius:20px;background:#00e5ff;border:none;font-weight:900">ARROW</button>
+<button onclick="mode='steer';show()" style="padding:8px 15px;border-radius:20px;background:#333;color:#fff;border:none;font-weight:900">STEERING</button>
 </div>
-<button id="startBtn" onclick="startGame()">START ENGINE</button>
+<button id="startBtn" onclick="start()">START ENGINE</button>
 </div>
-
-<div id="ui"><span id="carName">CULTUS</span><span id="speed">0 KM/H</span></div>
+<div id="ui"><span id="carName">CULTUS</span><span id="spd">0 KM/H</span></div>
 <canvas id="c"></canvas>
 <div id="controls">
-<div id="arrowBox" style="display:flex;gap:10px"><div class="btn" id="left">◀</div><div class="btn" id="right">▶</div></div>
-<div id="steering"></div>
-<div style="display:flex;flex-direction:column;gap:10px;align-items:end">
-<div style="display:flex;gap:10px"><div class="btn small" id="horn">📯</div><div class="btn small" id="nitro">NITRO</div></div>
-<div style="display:flex;gap:10px"><div class="btn small" id="brake" style="background:#ff3c00">BRAKE</div><div class="btn small" id="race" style="background:#00ff88;color:#000">RACE</div></div>
+<div style="display:flex;gap:10px"><div class="btn" id="left">◀</div><div class="btn" id="right">▶</div><div class="btn" id="steer">○</div></div>
+<div style="display:flex;flex-direction:column;gap:10px"><div style="display:flex;gap:10px"><div class="btn" id="horn">📯</div><div class="btn" style="background:#00e5ff;color:#000;font-weight:900;font-size:10px" id="nitro">NITRO</div></div><div style="display:flex;gap:10px"><div class="btn" id="brake">BRAKE</div><div class="btn" id="race">RACE</div></div></div>
 </div>
-</div>
-
 <script>
+let car='cultus',mode='arrow',W,H,run=false,speed=0,carX,road=0,traffic=[],keys={},ac,osc,gain,smoke=[];
 const canvas=document.getElementById('c'),ctx=canvas.getContext('2d');
-let W,H,run=false,speed=0,maxSpeed=14,carX,road=0,traffic=[],keys={},selectedCar='cultus',control='arrow';
-let ac,engOsc,engGain,steerAngle=0;
-
-function resize(){W=canvas.width=innerWidth;H=canvas.height=innerHeight;carX=W/2} resize(); addEventListener('resize',resize);
-function selectCar(name,el){selectedCar=name; document.querySelectorAll('.car-card').forEach(c=>c.classList.remove('active')); el.classList.add('active'); document.getElementById('carName').innerText=name.toUpperCase()}
-function setControl(type){control=type; document.getElementById('arrowBox').style.display=type=='arrow'?'flex':'none'; document.getElementById('steering').style.display=type=='steering'?'flex':'none'; document.getElementById('bArrow').style.background=type=='arrow'?'#00e5ff':'transparent'; document.getElementById('bArrow').style.color=type=='arrow'?'#000':'#fff'; document.getElementById('bSteer').style.background=type=='steering'?'#00e5ff':'transparent'; document.getElementById('bSteer').style.color=type=='steering'?'#000':'#fff';}
-
-function initAudio(){ac=new(window.AudioContext||window.webkitAudioContext)(); engOsc=ac.createOscillator(); engGain=ac.createGain(); let filter=ac.createBiquadFilter(); filter.type='lowpass'; filter.frequency.value=1200; engOsc.type='sawtooth'; engOsc.connect(filter); filter.connect(engGain); engGain.connect(ac.destination); engGain.gain.value=0; engOsc.start();}
-
-function playHorn(){if(!ac)return; let o=ac.createOscillator(),g=ac.createGain(); o.type='square'; o.frequency.value=420; o.connect(g); g.connect(ac.destination); g.gain.value=0.3; o.start(); o.stop(ac.currentTime+0.4);}
-
-function drawCar(x,y,type,isPlayer){
- let colors={cultus:'#fff',audi:'#222',lambo:'#ffcc00'};
- ctx.fillStyle=isPlayer?colors[type]:'#ffeb3b';
- if(type=='lambo'){ ctx.fillRect(x-30,y-55,60,110); ctx.fillStyle='#111'; ctx.fillRect(x-28,y-40,56,15); ctx.fillStyle='#00e5ff'; ctx.fillRect(x-26,y-20,52,10); }
- else if(type=='audi'){ ctx.fillRect(x-28,y-55,56,110); ctx.fillRect(x-30,y-50,60,20); ctx.fillStyle='#ccc'; ctx.fillRect(x-24,y-10,48,12); }
- else { ctx.fillRect(x-26,y-50,52,100); ctx.fillRect(x-20,y-60,40,25); }
- ctx.fillStyle=isPlayer?'#fff':'#f00'; ctx.fillRect(x-20,y+50,10,5); ctx.fillRect(x+10,y+50,10,5);
+function sel(el){document.querySelectorAll('.card').forEach(x=>x.classList.remove('active'));el.classList.add('active');document.getElementById('carName').innerText=car.toUpperCase()}
+function show(){document.getElementById('left').style.display=mode=='arrow'?'flex':'none';document.getElementById('right').style.display=mode=='arrow'?'flex':'none';document.getElementById('steer').style.display=mode=='steer'?'flex':'none'}
+function resize(){W=canvas.width=innerWidth;H=canvas.height=innerHeight;carX=W/2}resize();onresize=resize;
+function initA(){ac=new(window.AudioContext||window.webkitAudioContext)();osc=ac.createOscillator();gain=ac.createGain();let f=ac.createBiquadFilter();f.type='lowpass';osc.type='sawtooth';osc.connect(f);f.connect(gain);gain.connect(ac.destination);gain.gain.value=0;osc.start();}
+function horn(){if(!ac)return;let o=ac.createOscillator(),g=ac.createGain();o.frequency.value=400;o.connect(g);g.connect(ac.destination);g.gain.value=0.3;o.start();o.stop(ac.currentTime+0.35)}
+function drawCar(x,y,col){
+ctx.fillStyle=col;ctx.fillRect(x-28,y-50,56,100);ctx.fillStyle='#111';ctx.fillRect(x-22,y-30,44,30);ctx.fillStyle='#6ecfff';ctx.fillRect(x-20,y-25,42,10);ctx.fillStyle='#fff';ctx.fillRect(x-22,y+45,10,5);ctx.fillRect(x+12,y+45,10,5);ctx.fillStyle='#000';ctx.fillRect(x-34,y-20,8,20);ctx.fillRect(x+26,y-20,8,20);ctx.fillRect(x-34,y+20,8,20);ctx.fillRect(x+26,y+20,8,20);
 }
-
-function startGame(){
- initAudio(); document.getElementById('garage').style.display='none'; run=true;
- setInterval(()=>{if(run)traffic.push({x:Math.random()>0.5?W*0.28:W*0.72,y:-150,c:Math.random()})},900);
- loop();
-}
-
-let left=document.getElementById('left'),right=document.getElementById('right'),race=document.getElementById('race'),brake=document.getElementById('brake');
-left.ontouchstart=()=>keys.l=true; left.ontouchend=()=>keys.l=false; right.ontouchstart=()=>keys.r=true; right.ontouchend=()=>keys.r=false;
-race.ontouchstart=()=>keys.up=true; race.ontouchend=()=>keys.up=false; brake.ontouchstart=()=>keys.down=true; brake.ontouchend=()=>keys.down=false;
-left.onmousedown=()=>keys.l=true; left.onmouseup=()=>keys.l=false; right.onmousedown=()=>keys.r=true; right.onmouseup=()=>keys.r=false; race.onmousedown=()=>keys.up=true; race.onmouseup=()=>keys.up=false; brake.onmousedown=()=>keys.down=true; brake.onmouseup=()=>keys.down=false;
-document.getElementById('horn').onclick=playHorn;
-
-let steeringEl=document.getElementById('steering');
-let isSteering=false;
-steeringEl.ontouchstart=e=>{isSteering=true}; steeringEl.ontouchmove=e=>{
- if(!isSteering)return; let rect=steeringEl.getBoundingClientRect(); let cx=rect.left+rect.width/2; let touchX=e.touches[0].clientX; let diff=(touchX-cx)/40; steerAngle=diff; if(diff<-1)keys.l=true,keys.r=false; else if(diff>1)keys.r=true,keys.l=false; else keys.l=false,keys.r=false;
- steeringEl.style.transform=`rotate(${diff*30}deg)`;
-};
-steeringEl.ontouchend=()=>{isSteering=false; keys.l=false; keys.r=false; steerAngle=0; steeringEl.style.transform='rotate(0deg)'};
-
-addEventListener('keydown',e=>{if(e.key=='ArrowLeft')keys.l=true; if(e.key=='ArrowRight')keys.r=true; if(e.key=='ArrowUp')keys.up=true; if(e.key=='ArrowDown')keys.down=true});
-addEventListener('keyup',e=>{if(e.key=='ArrowLeft')keys.l=false; if(e.key=='ArrowRight')keys.r=false; if(e.key=='ArrowUp')keys.up=false; if(e.key=='ArrowDown')keys.down=false});
-
-let nitro=false; document.getElementById('nitro').ontouchstart=()=>nitro=true; document.getElementById('nitro').ontouchend=()=>nitro=false; document.getElementById('nitro').onmousedown=()=>nitro=true; document.getElementById('nitro').onmouseup=()=>nitro=false;
-
+function start(){initA();document.getElementById('garage').style.display='none';run=true;setInterval(()=>{if(run)traffic.push({x:Math.random()>0.5?W*0.28:W*0.72,y:-150})},800);loop()}
+let l=document.getElementById('left'),r=document.getElementById('right'),ra=document.getElementById('race'),br=document.getElementById('brake');
+function bind(el,k){el.ontouchstart=e=>{e.preventDefault();keys[k]=true};el.ontouchend=()=>keys[k]=false;el.onmousedown=()=>keys[k]=true;el.onmouseup=()=>keys[k]=false}
+bind(l,'l');bind(r,'r');bind(ra,'up');bind(br,'down');
+document.getElementById('horn').ontouchstart=e=>{e.preventDefault();horn()};document.getElementById('horn').onmousedown=horn;
+let nitro=false;let nb=document.getElementById('nitro');nb.ontouchstart=()=>nitro=true;nb.ontouchend=()=>nitro=false;nb.onmousedown=()=>nitro=true;nb.onmouseup=()=>nitro=false;
+let steerEl=document.getElementById('steer'),st=false;steerEl.ontouchstart=()=>st=true;steerEl.ontouchmove=e=>{if(!st)return;let cx=steerEl.getBoundingClientRect().left+55;let d=(e.touches[0].clientX-cx)/30;steerEl.style.transform='rotate('+d*40+'deg)';if(d<-1){keys.l=true;keys.r=false}else if(d>1){keys.r=true;keys.l=false}else{keys.l=false;keys.r=false}};steerEl.ontouchend=()=>{st=false;keys.l=false;keys.r=false;steerEl.style.transform='rotate(0deg)'};
+onkeydown=e=>{if(e.key=='ArrowLeft')keys.l=true;if(e.key=='ArrowRight')keys.r=true;if(e.key=='ArrowUp')keys.up=true;if(e.key=='ArrowDown')keys.down=true};onkeyup=e=>{if(e.key=='ArrowLeft')keys.l=false;if(e.key=='ArrowRight')keys.r=false;if(e.key=='ArrowUp')keys.up=false;if(e.key=='ArrowDown')keys.down=false};
 function loop(){
- if(!run)return;
- ctx.fillStyle='#1a3a1a'; ctx.fillRect(0,0,W,H);
- ctx.fillStyle='#222'; ctx.fillRect(W*0.12,0,W*0.76,H);
- ctx.strokeStyle='#fff'; ctx.setLineDash([45,35]); ctx.lineDashOffset=-road; ctx.beginPath(); ctx.moveTo(W/2,0); ctx.lineTo(W/2,H); ctx.stroke(); ctx.setLineDash([]);
-
- if(keys.up) speed+=0.12; else if(keys.down) speed-=0.15; else speed-=0.04;
- if(nitro) speed+=0.18;
- speed=Math.max(0,Math.min(maxSpeed+(nitro?6:0),speed));
-
- if(keys.l) carX-=6+speed*0.3; if(keys.r) carX+=6+speed*0.3;
- carX=Math.max(W*0.14,Math.min(W*0.86,carX));
- road+=speed;
-
- traffic.forEach((t,i)=>{ t.y+=speed; drawCar(t.x,t.y,'cultus',false); if(Math.abs(t.x-carX)<50 && Math.abs(t.y-(H-120))<80){ run=false; alert('CRASHED!'); location.reload(); } if(t.y>H+150) traffic.splice(i,1); });
-
- drawCar(carX,H-120,selectedCar,true);
-
- if(ac){
-  engGain.gain.value = speed>0.5?0.12+speed*0.02:0;
-  engOsc.frequency.value = 60 + speed*35 + (nitro?100:0);
- }
-
- document.getElementById('speed').innerText=Math.floor(speed*18)+' KM/H';
- requestAnimationFrame(loop);
+if(!run)return;
+ctx.fillStyle='#0f2a0f';ctx.fillRect(0,0,W,H);ctx.fillStyle='#222';ctx.fillRect(W*0.12,0,W*0.76,H);
+ctx.strokeStyle='#fff';ctx.setLineDash([45,35]);ctx.lineDashOffset=-road;ctx.beginPath();ctx.moveTo(W/2,0);ctx.lineTo(W/2,H);ctx.stroke();ctx.setLineDash([]);
+if(keys.up)speed+=0.14;else if(keys.down)speed-=0.22;else speed-=0.05;if(nitro)speed+=0.2;speed=Math.max(0,Math.min(15+(nitro?6:0),speed));road+=speed;
+if(keys.l)carX-=6+speed*0.4;if(keys.r)carX+=6+speed*0.4;carX=Math.max(W*0.15,Math.min(W*0.85,carX));
+if((keys.l||keys.r)&&speed>4)smoke.push({x:carX+(keys.l?-15:15),y:H-80,a:1});smoke.forEach((s,i)=>{s.y+=2;s.a-=0.03;ctx.fillStyle='rgba(200,200,200,'+s.a+')';ctx.beginPath();ctx.arc(s.x,s.y,6,0,6.28);ctx.fill();if(s.a<=0)smoke.splice(i,1)});
+traffic.forEach((t,i)=>{t.y+=speed+1;drawCar(t.x,t.y,'#ffeb3b');if(Math.abs(t.x-carX)<45&&Math.abs(t.y-(H-110))<80){run=false;alert('CRASHED');location.reload()}if(t.y>H+150)traffic.splice(i,1)});
+let col=car=='cultus'?'#fff':car=='audi'?'#111':'#ffcc00';drawCar(carX,H-110,col);
+if(nitro&&speed>2){ctx.fillStyle='orange';ctx.fillRect(carX-12,H-20,6,25);ctx.fillRect(carX+6,H-20,6,25)}
+if(ac){gain.gain.value=speed>0.5?0.15:0;osc.frequency.value=70+speed*28+(nitro?90:0)}
+document.getElementById('spd').innerText=Math.floor(speed*20)+' KM/H';
+requestAnimationFrame(loop);
 }
 </script>
 </body>
